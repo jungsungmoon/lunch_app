@@ -10,6 +10,8 @@ if 'menu_options' not in st.session_state:
     st.session_state.menu_options = []
 if 'selected_menu' not in st.session_state:
     st.session_state.selected_menu = None
+if 'menu_selections' not in st.session_state:
+    st.session_state.menu_selections = {}  # 각 메뉴에 대한 사용자 목록
 
 # 1. 이름 입력 페이지
 def input_name():
@@ -28,7 +30,7 @@ def input_lunch_menu():
     menu = st.text_input("점심 메뉴 입력")
     
     if st.button("추가"):
-        if menu:
+        if menu and menu not in st.session_state.menu_options:
             st.session_state.menu_options.append(menu)
     
     st.subheader("다른 사람들이 입력한 메뉴")
@@ -46,7 +48,20 @@ def select_lunch_menu():
     
     if st.button("선택 완료"):
         st.session_state.selected_menu = selected_menu
+        if selected_menu not in st.session_state.menu_selections:
+            st.session_state.menu_selections[selected_menu] = []
+        if st.session_state.name not in st.session_state.menu_selections[selected_menu]:
+            st.session_state.menu_selections[selected_menu].append(st.session_state.name)
         st.experimental_rerun()
+
+# 4. 메뉴 별 사용자 목록 보기
+def view_menu_selections():
+    st.title(f"{st.session_state.name}님, 오늘의 점심 메뉴는 {st.session_state.selected_menu}입니다!")
+    
+    st.subheader("메뉴별 선택한 사람들")
+    
+    for menu, users in st.session_state.menu_selections.items():
+        st.write(f"**{menu}**: {', '.join(users)}")
 
 # 페이지 구성 로직
 if st.session_state.name is None:
@@ -54,4 +69,4 @@ if st.session_state.name is None:
 elif not st.session_state.selected_menu:
     input_lunch_menu() if not st.session_state.menu_options else select_lunch_menu()
 else:
-    st.title(f"{st.session_state.name}님, 오늘의 점심 메뉴는 {st.session_state.selected_menu}입니다!")
+    view_menu_selections()
